@@ -124,9 +124,24 @@ var selectAll = async (table, cb)=>{
 };
 
 
-exports.select    = select;
-exports.selectAll = selectAll;
-exports.querySql  = querySql;
-exports.add       = add;
-exports.update    = update;
-exports.del       = del;
+var selectPage = async (table, whereSql, params, orderSql, index=0, size=10, cb)=>{
+  await conn;
+  try{
+    var ps = new mssql.PreparedStatement(pool);
+    sql = `select top(${size}) * from ${table} ${whereSql}  where id not in ( select top ${(index-1)*size} id from ${table} ) ${orderSql}`;
+    console.log(sql);
+    prepareParms(ps, params, [], [], [])
+    prepareExec(ps, sql, params, cb)
+  }catch(err){
+    console.error('SQL error', err);
+  }
+};
+
+
+exports.select     = select;
+exports.selectAll  = selectAll;
+exports.selectPage = selectPage;
+exports.querySql   = querySql;
+exports.add        = add;
+exports.update     = update;
+exports.del        = del;
